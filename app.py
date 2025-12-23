@@ -1,5 +1,11 @@
 import streamlit as st
-import subprocess
+from PIL import Image
+import numpy as np
+
+# 👉 import your existing emotion logic
+# emotion_music_player.py MUST have a function:
+# def detect_emotion(image): return emotion_string
+from emotion_music_player import detect_emotion  
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -90,46 +96,63 @@ st.markdown("---")
 
 col1, col2 = st.columns([1.2, 1.8])
 
-# LEFT SIDE — SCANNER
+# ---------------- LEFT SIDE — SCANNER ----------------
 with col1:
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.subheader("🎭 Face Emotion Scanner")
-    st.write("Click the button below and let AI feel your mood.")
+    st.write("Click below and allow camera access.")
 
     st.markdown("<div class='scan-btn'>", unsafe_allow_html=True)
-    if st.button("📷 Scan My Face"):
-        st.info("Opening webcam... Please look at the camera 👀")
-        subprocess.run(["python", "emotion_music_player.py"])
+    scan_clicked = st.button("📷 Scan My Face")
     st.markdown("</div>", unsafe_allow_html=True)
+
+    if scan_clicked:
+        st.info("Camera will open below 👇 Please allow permission")
+
+    # ✅ Browser-based camera (THIS WORKS ONLINE)
+    img = st.camera_input("Take a photo")
+
+    if img is not None:
+        image = Image.open(img)
+        image = np.array(image)
+
+        emotion = detect_emotion(image)
+        st.success(f"Detected Emotion: {emotion}")
+
+        # 🎵 Play music in browser
+        if emotion.lower() == "happy":
+            st.audio("music/game3/happy/happy.mp3")
+        elif emotion.lower() == "sad":
+            st.audio("music/game3/sad/sad.mp3")
+        else:
+            st.audio("music/game3/calm/calm.mp3")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-# RIGHT SIDE — INFO
+# ---------------- RIGHT SIDE — INFO ----------------
 with col2:
     st.markdown("<div class='card'>", unsafe_allow_html=True)
     st.subheader("🎶 How It Works")
     st.markdown("""
     ✅ Click **Scan My Face**  
-    ✅ Camera detects facial emotion  
-    ✅ Deep Learning model analyzes mood  
+    ✅ Browser camera opens  
+    ✅ AI detects facial emotion  
     ✅ Music plays instantly  
 
     ---
     **Supported Emotions:**  
     😊 Happy  
     😢 Sad  
+    😐 Neutral  
     😡 Angry  
     😱 Fear  
-    😐 Neutral  
     """)
-
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 
-# FOOTER
+# ---------------- FOOTER ----------------
 st.markdown(
-    "<center style='color:#aaa;'>🚀 Built with Python • Streamlit • OpenCV • DeepFace</center>",
+    "<center style='color:#aaa;'>🚀 Built with Python • Streamlit • OpenCV • Deep Learning</center>",
     unsafe_allow_html=True
 )
-
